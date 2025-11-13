@@ -1,4 +1,4 @@
-# Temp_Mail – Temporary Email
+# Atom Mail – Temporary Email
 
 **Live Demo** → [https://tamim404.github.io/Atom_Mail/](https://tamim404.github.io/Atom_Mail/)
 
