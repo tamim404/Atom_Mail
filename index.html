@@ -55,15 +55,17 @@
             border: 2px solid transparent;
             background-clip: padding-box;
         }
-        .neon-border::before {
+       .neon-border::before {
             content: '';
             position: absolute;
             inset: -4px;
             border-radius: inherit;
-            background: linear-gradient(45deg, #131313, #202020, #141414);
+            /* background: linear-gradient(45deg, #6600ff, #cc00ff, #ff00cc), #6600ff, #cc00aa; */
+            background-size: 300% 300%;
             z-index: -1;
-            animation: neonFlow 4s linear infinite;
+            animation: neonFlow 6s linear infinite;
         }
+        
         @keyframes neonFlow {
             0% { background-position: 0% 50%; }
             100% { background-position: 100% 50%; }
@@ -85,7 +87,10 @@
         .animate-fill-bar {
             animation: fill-bar 2s ease-out forwards;
         }
-       
+       #email-body {
+         color: white;
+        }
+
         /* Toast notification animations */
         @keyframes toastIn {
             from { transform: translateY(100%) scale(0.9); opacity: 0; }
@@ -165,12 +170,12 @@
                
                 <div class="grid grid-cols-2 gap-4">
                     <button id="change-mail-btn" class="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-blue-600 hover:to-cyan-500 text-white font-bold py-4 px-6 rounded-2xl shadow-2xl float-3d transition-all duration-300 transform hover:scale-105 neon-border">
-                        <span class="material-symbols-outlined text-2xl font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-600 text-transparent bg-clip-text">change_circle</span>
-                        <span class="font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-600 text-transparent bg-clip-text">Change Mail</span>
+                        <span class="material-symbols-outlined text-2xl font-bold text-center bg-clip-text">change_circle</span>
+                        <span class="font-bold text-center bg-clip-text">Change Mail</span>
                     </button>
                     <button id="delete-mail-btn" class="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-pink-600 hover:to-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-2xl float-3d transition-all duration-300 transform hover:scale-105 neon-border">
-                        <span class="material-symbols-outlined text-2xl font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-600 text-transparent bg-clip-text">delete</span>
-                        <span class="font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-600 text-transparent bg-clip-text">Delete Mail</span>
+                        <span class="material-symbols-outlined text-2xl font-bold text-center bg-clip-text">delete</span>
+                        <span class="font-bold text-center bg-clip-text">Delete Mail</span>
                     </button>
                 </div>
 
@@ -226,8 +231,8 @@
                     </div>
                 </div>
                
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl mt-2 flex-grow neon-border float-3d">
-                     <iframe id="email-body" class="w-full h-full border-0 rounded-2xl" sandbox="allow-same-origin"></iframe>
+                <div class="dark:bg-gray-400 rounded-2xl shadow-2xl mt-2 flex-grow neon-border float-3d text-white ">
+                     <iframe id="email-body" class="w-full h-64 border-0 rounded-2xl"></iframe>
                 </div>
                 <button id="delete-message-btn" class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-pink-600 hover:to-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-2xl transition-all flex-shrink-0 transform hover:scale-105 neon-border">
                     <span class="material-symbols-outlined text-2xl">delete</span>
@@ -319,6 +324,7 @@
             emailBody: document.getElementById('email-body'),
             deleteMessageBtn: document.getElementById('delete-message-btn'),
         };
+        
         // --- API FUNCTIONS ---
         const fetchWithTimeout = async (url, options = {}, timeout = 8000) => {
             const controller = new AbortController();
