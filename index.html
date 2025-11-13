@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mail Generator - Temporary Email</title>
+   
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+        /* === MATRIX RAIN BACKGROUND === */
+        #matrix-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        /* 3D Cyber Container */
+        #cyber-container {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.15), transparent 60%);
+            animation: pulseGlow 8s infinite alternate;
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+            100% { box-shadow: 0 0 60px rgba(168, 85, 247, 0.6); }
+        }
+        /* 3D Card Float Effect */
+        .float-3d {
+            transition: all 0.4s ease;
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px rgba(13, 11, 17, 0.2);
+        }
+        .float-3d:hover {
+            transform: perspective(1000px) rotateX(8deg) rotateY(8deg) translateZ(20px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 50px rgba(33, 25, 41, 0.5);
+        }
+        /* Neon Border Glow */
+        .neon-border {
+            position: relative;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .neon-border::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: inherit;
+            background: linear-gradient(45deg, #131313, #202020, #141414);
+            z-index: -1;
+            animation: neonFlow 4s linear infinite;
+        }
+        @keyframes neonFlow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        /* Custom class to hide scrollbars */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+       
+        /* Material Icons sizing adjustment */
+        .material-symbols-outlined {
+            font-size: inherit;
+            vertical-align: middle;
+        }
+        /* Splash screen loading bar animation */
+        @keyframes fill-bar {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        .animate-fill-bar {
+            animation: fill-bar 2s ease-out forwards;
+        }
+       
+        /* Toast notification animations */
+        @keyframes toastIn {
+            from { transform: translateY(100%) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes toastOut {
+            from { transform: translateY(0) scale(1); opacity: 1; }
+            to { transform: translateY(100%) scale(0.9); opacity: 0; }
+        }
+        .toast-in { animation: toastIn 0.3s ease-out forwards; }
+        .toast-out { animation: toastOut 0.3s ease-in forwards; }
+        /* A simple spinner for buttons */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        .dark .spinner {
+            border: 2px solid rgba(0,0,0,0.3);
+            border-top-color: black;
+        }
+        /* Matrix Text Glow */
+        .matrix-text {
+            /* text-shadow: 0 0 10px rgb(13, 27, 11), 0 0 20px #1b2718, 0 0 40px #21351e; */
+            animation: flicker 3s infinite alternate;
+        }
+        @keyframes flicker {
+            0%,100% { opacity: 0.9; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 antialiased transition-colors duration-300">
+    <!-- MATRIX RAIN CANVAS -->
+    <canvas id="matrix-canvas"></canvas>
+    <div id="cyber-container"></div>
+
+    <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 transition-opacity duration-500">
+        <div class="text-center">
+            <h1 class="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-green-500 to-purple-600 text-transparent bg-clip-text matrix-text animate-pulse">Mail Generator</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-4 text-lg">Powered by <span class="text-green-400 font-bold matrix-text">TAMIM</span></p>
+        </div>
+        <div class="w-64 h-2 bg-gray-800 dark:bg-gray-200 rounded-full overflow-hidden mt-10 neon-border">
+            <div id="loading-bar" class="h-full bg-gradient-to-r from-cyan-500 via-green-400 to-purple-600 animate-fill-bar"></div>
+        </div>
+        <p class="mt-6 text-sm text-gray-400 matrix-text">Initializing neural interface...</p>
+    </div>
+
+    <div id="app-container" class="max-w-lg mx-auto h-screen flex flex-col opacity-0 transition-opacity duration-500 relative z-10">
+       
+        <div id="home-screen" class="flex flex-col h-full">
+            <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-xl neon-border">
+                <div class="w-10"></div> 
+                <h1 class="text-2xl font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-600 text-transparent bg-clip-text">Mail Generator</h1>
+                <button id="theme-toggle-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <span hidden id="theme-icon" class="material-symbols-outlined">light_mode</span>
+                </button>
+            </header>
+            <main class="p-4 space-y-5 flex-grow overflow-y-auto no-scrollbar">
+               
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-2xl float-3d neon-border">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Your temporary email address</p>
+                    <div class="flex items-center justify-between gap-2">
+                        <span id="email-address" class="font-mono text-xl truncate font-bold text-cyan-400 dark:text-green-400">loading...</span>
+                        <button id="copy-btn" class="flex-shrink-0 p-3 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-purple-600 hover:to-cyan-500 text-white shadow-lg transform hover:scale-110 transition-all">
+                            <span class="material-symbols-outlined text-xl">content_copy</span>
+                        </button>
+                    </div>
+                </div>
+               
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="change-mail-btn" class="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-blue-600 hover:to-cyan-500 text-white font-bold py-4 px-6 rounded-2xl shadow-2xl float-3d transition-all duration-300 transform hover:scale-105 neon-border">
+                        <span class="material-symbols-outlined text-2xl font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-600 text-transparent bg-clip-text">change_circle</span>
+                        <span class="font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-600 text-transparent bg-clip-text">Change Mail</span>
+                    </button>
+                    <button id="delete-mail-btn" class="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-pink-600 hover:to-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-2xl float-3d transition-all duration-300 transform hover:scale-105 neon-border">
+                        <span class="material-symbols-outlined text-2xl font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-600 text-transparent bg-clip-text">delete</span>
+                        <span class="font-bold text-center bg-gradient-to-r from-cyan-400 to-purple-600 text-transparent bg-clip-text">Delete Mail</span>
+                    </button>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold bg-gradient-to-r from-green-400 to-cyan-500 text-transparent bg-clip-text">Inbox</h2>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2 bg-black/50 dark:bg-white/10 px-4 py-2 rounded-xl shadow-2xl border border-cyan-500/50">
+                                <span class="material-symbols-outlined text-xl text-green-400 animate-pulse">timer</span>
+                                <span id="timer-display" class="text-lg font-bold text-green-400">10:00</span>
+                            </div>
+                            <button id="extend-timer-btn" class="px-5 py-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-emerald-600 hover:to-green-500 text-white font-bold shadow-2xl transform hover:scale-110 transition-all">
+                                Extend
+                            </button>
+                            <button id="refresh-btn" class="p-3 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 text-white shadow-lg transform hover:scale-110 transition-all">
+                                <span class="material-symbols-outlined">refresh</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="empty-inbox" class="text-center py-16 px-6 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl float-3d neon-border">
+                        <span class="material-symbols-outlined text-8xl text-gray-400 animate-pulse">hourglass_empty</span>
+                        <p class="mt-4 text-gray-500 dark:text-gray-400 text-lg">Your inbox is empty — Waiting for incoming emails...</p>
+                        <p class="mt-2 text-cyan-400 text-sm font-mono animate-pulse">Scanning network packets...</p>
+                    </div>
+                   
+                    <div id="inbox-list" class="space-y-4">
+                    </div>
+                </div>
+               
+                <footer class="text-center text-sm text-gray-400 dark:text-gray-500 pt-8 pb-4">
+                    Developed & Powered by <b class="text-green-400 matrix-text">TAMIM</b>.
+                </footer>
+            </main>
+        </div>
+
+        <div id="email-screen" class="hidden flex-col h-full">
+            <header class="flex items-center p-4 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-gray-50/90 dark:bg-gray-900/90 backdrop-blur-xl neon-border">
+                <button id="back-to-inbox-btn" class="p-3 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all transform hover:scale-110">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h2 class="text-lg font-bold text-center flex-grow truncate px-4 text-cyan-400" id="email-subject-header">Email Details</h2>
+                <div class="w-10"></div> 
+            </header>
+            <main class="p-4 flex-grow overflow-y-auto no-scrollbar space-y-6 flex flex-col">
+                <div class="flex items-start gap-4">
+                    <div id="email-avatar" class="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 text-white flex items-center justify-center text-2xl font-bold flex-shrink-0 shadow-2xl neon-border"></div>
+                    <div class="flex-grow min-w-0"> 
+                        <div class="flex justify-between items-baseline">
+                           <p id="email-from" class="font-bold text-lg text-cyan-400 truncate"></p>
+                           <p id="email-timestamp" class="text-sm text-gray-400 flex-shrink-0 ml-2"></p>
+                        </div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">to: <span id="email-to" class="text-green-400"></span></p>
+                    </div>
+                </div>
+               
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl mt-2 flex-grow neon-border float-3d">
+                     <iframe id="email-body" class="w-full h-full border-0 rounded-2xl" sandbox="allow-same-origin"></iframe>
+                </div>
+                <button id="delete-message-btn" class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-pink-600 hover:to-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-2xl transition-all flex-shrink-0 transform hover:scale-105 neon-border">
+                    <span class="material-symbols-outlined text-2xl">delete</span>
+                    <span class="text-lg">Delete Message (Local)</span>
+                </button>
+            </main>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 space-y-3"></div>
+   
+    <script>
+        // MATRIX RAIN EFFECT
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}";
+        const matrixArray = matrix.split("");
+
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+
+        const drops = [];
+        for(let x = 0; x < columns; x++) drops[x] = 1;
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+
+            for(let i = 0; i < drops.length; i++) {
+                const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if(drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+                    drops[i] = 0;
+                
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 35);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+
+    <script type="module">
+        // --- STATE MANAGEMENT ---
+        const API_BASE = 'https://api.mail.tm';
+        let currentAccount = {
+            id: null,
+            address: null,
+            password: null,
+            token: null,
+        };
+        let inboxInterval = null;
+        let timerInterval = null;
+        let timerSeconds = 600; // 10 minutes
+        // --- DOM ELEMENTS ---
+        const DOMElements = {
+            splashScreen: document.getElementById('splash-screen'),
+            appContainer: document.getElementById('app-container'),
+            homeScreen: document.getElementById('home-screen'),
+            emailScreen: document.getElementById('email-screen'),
+            emailAddress: document.getElementById('email-address'),
+            copyBtn: document.getElementById('copy-btn'),
+            timerDisplay: document.getElementById('timer-display'),
+            inboxList: document.getElementById('inbox-list'),
+            emptyInbox: document.getElementById('empty-inbox'),
+            refreshBtn: document.getElementById('refresh-btn'),
+            changeMailBtn: document.getElementById('change-mail-btn'),
+            deleteMailBtn: document.getElementById('delete-mail-btn'),
+            extendTimerBtn: document.getElementById('extend-timer-btn'),
+            themeToggleBtn: document.getElementById('theme-toggle-btn'),
+            themeIcon: document.getElementById('theme-icon'),
+            backToInboxBtn: document.getElementById('back-to-inbox-btn'),
+            emailSubjectHeader: document.getElementById('email-subject-header'),
+            emailAvatar: document.getElementById('email-avatar'),
+            emailFrom: document.getElementById('email-from'),
+            emailTo: document.getElementById('email-to'),
+            emailTimestamp: document.getElementById('email-timestamp'),
+            emailBody: document.getElementById('email-body'),
+            deleteMessageBtn: document.getElementById('delete-message-btn'),
+        };
+        // --- API FUNCTIONS ---
+        const fetchWithTimeout = async (url, options = {}, timeout = 8000) => {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(id);
+                return response;
+            } catch (error) {
+                clearTimeout(id);
+                throw error;
+            }
+        };
+        const getNewEmail = async (isDelete = false) => {
+            showSpinner(DOMElements.changeMailBtn, true);
+            showSpinner(DOMElements.deleteMailBtn, true);
+           
+            if (isDelete && currentAccount.id) {
+                try {
+                    await fetchWithTimeout(`${API_BASE}/accounts/${currentAccount.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${currentAccount.token}` },
+                    });
+                } catch (e) { console.error("Failed to delete old account:", e); }
+            }
+           
+            clearInterval(inboxInterval);
+            clearInterval(timerInterval);
+           
+            try {
+                const domainResponse = await fetchWithTimeout(`${API_BASE}/domains`);
+                if (!domainResponse.ok) throw new Error('Failed to fetch domains');
+                const domains = await domainResponse.json();
+                const domain = domains['hydra:member'][0].domain;
+                const address = `${Math.random().toString(36).substring(7)}@${domain}`;
+                const password = Math.random().toString(36).substring(2);
+                const accountResponse = await fetchWithTimeout(`${API_BASE}/accounts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address, password }),
+                });
+                if (!accountResponse.ok) throw new Error('Failed to create account');
+                const accountData = await accountResponse.json();
+                const tokenResponse = await fetchWithTimeout(`${API_BASE}/token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address, password }),
+                });
+                if (!tokenResponse.ok) throw new Error('Failed to get token');
+                const tokenData = await tokenResponse.json();
+               
+                currentAccount = {
+                    id: accountData.id,
+                    address,
+                    password,
+                    token: tokenData.token,
+                };
+                DOMElements.emailAddress.textContent = currentAccount.address;
+                showToast("New email generated!", "success");
+                extendTimer();
+                checkInbox();
+                inboxInterval = setInterval(checkInbox, 10000); // 10 seconds auto-refresh
+            } catch (error) {
+                console.error('Error getting new email:', error);
+                showToast("Error creating email. Try again.", "error");
+            } finally {
+                showSpinner(DOMElements.changeMailBtn, false);
+                showSpinner(DOMElements.deleteMailBtn, false);
+            }
+        };
+        const checkInbox = async () => {
+            if (!currentAccount.token) return;
+            showSpinner(DOMElements.refreshBtn, true);
+            try {
+                const response = await fetchWithTimeout(`${API_BASE}/messages`, {
+                    headers: { 'Authorization': `Bearer ${currentAccount.token}` },
+                });
+                if (response.status === 401) {
+                    showToast("Session expired. Getting a new email.", "warning");
+                    await getNewEmail();
+                    return;
+                }
+                if (!response.ok) throw new Error('Failed to fetch inbox');
+                const messages = await response.json();
+                renderInbox(messages['hydra:member']);
+            } catch (error) {
+                console.error('Error checking inbox:', error);
+            } finally {
+                showSpinner(DOMElements.refreshBtn, false);
+            }
+        };
+        const openEmail = async (id) => {
+            DOMElements.homeScreen.classList.add('hidden');
+            DOMElements.emailScreen.classList.remove('hidden');
+            DOMElements.emailScreen.classList.add('flex');
+           
+            try {
+                const response = await fetchWithTimeout(`${API_BASE}/messages/${id}`, {
+                     headers: { 'Authorization': `Bearer ${currentAccount.token}` },
+                });
+                if (!response.ok) throw new Error('Failed to fetch message');
+                const emailData = await response.json();
+               
+                DOMElements.emailSubjectHeader.textContent = emailData.subject;
+                DOMElements.emailFrom.textContent = emailData.from.name || emailData.from.address;
+                DOMElements.emailTo.textContent = currentAccount.address;
+                DOMElements.emailTimestamp.textContent = formatDate(new Date(emailData.createdAt));
+                DOMElements.emailAvatar.textContent = (emailData.from.name || emailData.from.address)[0].toUpperCase();
+               
+                DOMElements.emailBody.srcdoc = emailData.html[0] || `<p>${escapeHTML(emailData.text)}</p>`;
+            } catch(error) {
+                 console.error('Error opening email:', error);
+                 showToast('Could not load email.', 'error');
+                 showHomeScreen();
+            }
+        };
+        // --- UI & HELPER FUNCTIONS ---
+       
+        const renderInbox = (messages) => {
+            DOMElements.inboxList.innerHTML = '';
+            if (messages.length === 0) {
+                DOMElements.emptyInbox.style.display = 'block';
+                DOMElements.inboxList.style.display = 'none';
+            } else {
+                DOMElements.emptyInbox.style.display = 'none';
+                DOMElements.inboxList.style.display = 'block';
+                messages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                messages.forEach(msg => {
+                    const emailItem = document.createElement('div');
+                    emailItem.className = 'bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all float-3d neon-border';
+                    emailItem.dataset.id = msg.id;
+                   
+                    emailItem.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <p class="font-bold text-lg truncate pr-2 text-cyan-400">${escapeHTML(msg.from.name || msg.from.address)}</p>
+                            <p class="text-sm text-gray-400 flex-shrink-0">${formatDate(new Date(msg.createdAt))}</p>
+                        </div>
+                        <p class="font-bold text-md truncate mt-2 text-purple-400">${escapeHTML(msg.subject)}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate mt-2 line-clamp-2">${escapeHTML(msg.intro)}</p>
+                    `;
+                    DOMElements.inboxList.appendChild(emailItem);
+                });
+            }
+        };
+        const showHomeScreen = () => {
+            DOMElements.emailScreen.classList.add('hidden');
+            DOMElements.emailScreen.classList.remove('flex');
+            DOMElements.homeScreen.classList.remove('hidden');
+        };
+        const copyToClipboard = () => {
+            if (!currentAccount.address) return;
+            navigator.clipboard.writeText(currentAccount.address)
+                .then(() => showToast("Copied to clipboard!", "success"))
+                .catch(() => showToast("Failed to copy", "error"));
+        };
+       
+        const startTimer = () => {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                const minutes = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                const seconds = (timerSeconds % 60).toString().padStart(2, '0');
+                DOMElements.timerDisplay.textContent = `${minutes}:${seconds}`;
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    DOMElements.timerDisplay.textContent = "Expired";
+                    showToast("Timer expired! Extend or get new email.", "warning");
+                }
+            }, 1000);
+        };
+        const extendTimer = () => {
+            timerSeconds = 600;
+            DOMElements.timerDisplay.textContent = "10:00";
+            startTimer();
+        };
+        const showToast = (message, type = 'info') => {
+            const toast = document.createElement('div');
+            const colors = {
+                info: 'bg-black/80 backdrop-blur-xl text-green-400 border border-cyan-500',
+                success: 'bg-green-600 text-white',
+                warning: 'bg-yellow-600 text-black',
+                error: 'bg-red-600 text-white',
+            };
+            toast.className = `px-6 py-3 rounded-full shadow-2xl text-sm font-bold toast-in ${colors[type]} neon-border`;
+            toast.textContent = message;
+           
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('toast-in');
+                toast.classList.add('toast-out');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 3000);
+        };
+       
+        const escapeHTML = (str) => {
+            const p = document.createElement('p');
+            p.textContent = str;
+            return p.innerHTML;
+        };
+        const formatDate = (date) => {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return `${Math.floor(interval)}y ago`;
+            interval = seconds / 2592000;
+            if (interval > 1) return `${Math.floor(interval)}mo ago`;
+            interval = seconds / 86400;
+            if (interval > 1) return `${Math.floor(interval)}d ago`;
+            interval = seconds / 3600;
+            if (interval > 1) return `${Math.floor(interval)}h ago`;
+            interval = seconds / 60;
+            if (interval > 1) return `${Math.floor(interval)}m ago`;
+            return "Just now";
+        };
+        const showSpinner = (button, show) => {
+            const originalContent = button.dataset.originalContent || button.innerHTML;
+            if (show) {
+                if (!button.querySelector('.spinner')) {
+                    button.dataset.originalContent = button.innerHTML;
+                    button.innerHTML = '<span class="spinner"></span>';
+                    button.disabled = true;
+                }
+            } else {
+                if (button.dataset.originalContent) {
+                    button.innerHTML = button.dataset.originalContent;
+                }
+                button.disabled = false;
+            }
+        };
+        // --- THEME MANAGEMENT ---
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                DOMElements.themeIcon.textContent = 'light_mode';
+            } else {
+                document.documentElement.classList.remove('dark');
+                DOMElements.themeIcon.textContent = 'dark_mode';
+            }
+        };
+        const toggleTheme = () => {
+            const currentTheme = localStorage.getItem('theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        };
+        // --- INITIALIZATION ---
+        const initApp = async () => {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            applyTheme(savedTheme);
+            setTimeout(() => {
+                DOMElements.splashScreen.style.opacity = '0';
+                DOMElements.appContainer.style.opacity = '1';
+                DOMElements.splashScreen.addEventListener('transitionend', () => DOMElements.splashScreen.style.display = 'none');
+            }, 2200);
+            await getNewEmail();
+            DOMElements.copyBtn.addEventListener('click', copyToClipboard);
+            DOMElements.changeMailBtn.addEventListener('click', () => getNewEmail(false));
+            DOMElements.deleteMailBtn.addEventListener('click', () => getNewEmail(true));
+            DOMElements.refreshBtn.addEventListener('click', checkInbox);
+            DOMElements.extendTimerBtn.addEventListener('click', extendTimer);
+            DOMElements.themeToggleBtn.addEventListener('click', toggleTheme);
+            DOMElements.backToInboxBtn.addEventListener('click', showHomeScreen);
+            DOMElements.inboxList.addEventListener('click', (e) => {
+                const emailItem = e.target.closest('[data-id]');
+                if (emailItem) {
+                    openEmail(emailItem.dataset.id);
+                }
+            });
+            DOMElements.deleteMessageBtn.addEventListener('click', () => {
+                showToast("Message hidden locally.", "info");
+                showHomeScreen();
+            });
+        };
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
