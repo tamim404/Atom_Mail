@@ -1,6 +1,6 @@
 # Temp_Mail – Temporary Email
 
-**Live Demo** → [https://tamim404.github.io/Temp_Mail/](https://tamim404.github.io/Temp_Mail/)
+**Live Demo** → [https://tamim404.github.io/Atom_Mail/](https://tamim404.github.io/Atom_Mail/)
 
 Instant, beautiful, disposable email. No signup. Self-destructs in 10 minutes.
 
